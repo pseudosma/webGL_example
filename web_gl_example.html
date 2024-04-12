@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Example</title>
+    <style>
+        body { 
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        canvas { display: block; }
+    </style>
+    <script type="text/javascript" src="./gl-matrix-min.js"></script>
+    <script type="text/javascript" src="./controls.js"></script>
+    <script type="text/javascript" src="./sphere.js"></script>
+    <script type="text/javascript" src="./shaders.js"></script>
+    <script type="text/javascript" src="./render.js"></script>
+</head>
+<body>
+    <canvas id="glCanvas"></canvas>
+
+    <script>
+        const handleGLCanvas = () => {
+            const canvas = document.getElementById('glCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            render();
+        }
+
+        window.onload = () => {
+            handleGLCanvas();
+        };
+        
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('glCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        document.addEventListener('keydown', handleKeyPress);
+
+    </script>
+</body>
+</html>
