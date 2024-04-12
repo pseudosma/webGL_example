@@ -21,21 +21,19 @@
     <canvas id="glCanvas"></canvas>
 
     <script>
-        const handleGLCanvas = () => {
+        const resizeCanvas = () => {
             const canvas = document.getElementById('glCanvas');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            render();
         }
 
         window.onload = () => {
-            handleGLCanvas();
+            resizeCanvas();
+            render();
         };
         
         window.addEventListener('resize', () => {
-            const canvas = document.getElementById('glCanvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            resizeCanvas();
         });
 
         document.addEventListener('keydown', handleKeyPress);
@@ -43,3 +41,193 @@
     </script>
 </body>
 </html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Example</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+    <script src="./gl-matrix-min.js"></script>
+</head>
+<body>
+    <canvas id="glCanvas" width="800" height="600"></canvas>
+
+    <script>
+        window.onload = function() {
+            const canvas = document.getElementById('glCanvas');
+            const gl = canvas.getContext('webgl');
+
+            if (!gl) {
+                alert('WebGL not supported, please use a browser that supports WebGL.');
+                return;
+            }
+
+            // Vertex shader source code
+            const vertexShaderSource = `
+                attribute vec4 aPosition;
+                uniform mat4 uModelViewMatrix;
+                uniform mat4 uProjectionMatrix;
+                void main() {
+                    gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+                }
+            `;
+
+            // Fragment shader source code
+            const fragmentShaderSource = `
+                precision mediump float;
+                void main() {
+                    gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0); // Blue color
+                }
+            `;
+
+            // Compile shaders, create shader program
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vertexShaderSource);
+            gl.compileShader(vertexShader);
+
+            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fragmentShaderSource);
+            gl.compileShader(fragmentShader);
+
+            const shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+            gl.useProgram(shaderProgram);
+
+            // Set up cube geometry
+            const positions = new Float32Array([
+                -0.5, -0.5, -0.5,
+                0.5, -0.5, -0.5,
+                0.5, 0.5, -0.5,
+                -0.5, 0.5, -0.5,
+                -0.5, -0.5, 0.5,
+                0.5, -0.5, 0.5,
+                0.5, 0.5, 0.5,
+                -0.5, 0.5, 0.5
+            ]);
+
+            const indices = new Uint16Array([
+                0, 1, 2, 0, 2, 3,
+                4, 5, 6, 4, 6, 7,
+                0, 3, 7, 0, 7, 4,
+                1, 2, 6, 1, 6, 5,
+                0, 1, 5, 0, 5, 4,
+                2, 3, 7, 2, 7, 6
+            ]);
+
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+            const indexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+
+            const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'aPosition');
+            gl.enableVertexAttribArray(positionAttributeLocation);
+            gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+            // Set up camera
+            let cameraPosition = vec3.fromValues(0.0, 0.0, 3.0);
+            let cameraFront = vec3.fromValues(0.0, 0.0, -1.0);
+            let cameraUp = vec3.fromValues(0.0, 1.0, 0.0);
+            let yaw = -90.0;
+            let pitch = 0.0;
+            let lastX = canvas.width / 2;
+            let lastY = canvas.height / 2;
+            let fov = 45.0;
+
+            // Set up matrices
+            const projectionMatrix = mat4.create();
+            mat4.perspective(projectionMatrix, glMatrix.toRadian(fov), canvas.width / canvas.height, 0.1, 100.0);
+
+            const viewMatrix = mat4.create();
+
+            // Bind uniform locations
+            const projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
+            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+
+            const modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+
+            function drawScene() {
+                // Clear canvas
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                // Update view matrix
+                mat4.lookAt(viewMatrix, cameraPosition, vec3.add(vec3.create(), cameraPosition, cameraFront), cameraUp);
+
+                // Set model-view matrix
+                gl.uniformMatrix4fv(modelViewMatrixLocation, false, viewMatrix);
+
+                // Draw cube
+                gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+            }
+
+            // Set up event listeners for mouse movement
+            canvas.addEventListener('mousemove', handleMouseMove);
+
+            function handleMouseMove(event) {
+                const sensitivity = 0.1;
+                let xoffset = event.clientX - lastX;
+                let yoffset = lastY - event.clientY; // Reversed since y-coordinates range from bottom to top
+                lastX = event.clientX;
+                lastY = event.clientY;
+
+                xoffset *= sensitivity;
+                yoffset *= sensitivity;
+
+                yaw += xoffset;
+                pitch += yoffset;
+
+                // Constrain pitch to avoid flipping
+                if (pitch > 89.0) pitch = 89.0;
+                if (pitch < -89.0) pitch = -89.0;
+
+                const front = vec3.create();
+                front[0] = Math.cos(glMatrix.toRadian(yaw)) * Math.cos(glMatrix.toRadian(pitch));
+                front[1] = Math.sin(glMatrix.toRadian(pitch));
+                front[2] = Math.sin(glMatrix.toRadian(yaw)) * Math.cos(glMatrix.toRadian(pitch));
+                vec3.normalize(cameraFront, front);
+
+                drawScene();
+            }
+
+            // Set up event listeners for keyboard input
+            document.addEventListener('keydown', handleKeyDown);
+
+            function handleKeyDown(event) {
+                const cameraSpeed = 0.05;
+
+                switch (event.key) {
+                    case 'w':
+                        vec3.add(cameraPosition, cameraPosition, vec3.scale(vec3.create(), cameraFront, cameraSpeed));
+                        drawScene();
+                        break;
+                    case 's':
+                        vec3.subtract(cameraPosition, cameraPosition, vec3.scale(vec3.create(), cameraFront, cameraSpeed));
+                        drawScene();
+                        break;
+                    case 'a':
+                        vec3.subtract(cameraPosition, cameraPosition, vec3.scale(vec3.create(), vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cameraFront, cameraUp)), cameraSpeed));
+                        drawScene();
+                        break;
+                    case 'd':
+                        vec3.add(cameraPosition, cameraPosition, vec3.scale(vec3.create(), vec3.normalize(vec3.create(), vec3.cross(vec3.create(), cameraFront, cameraUp)), cameraSpeed));
+                        drawScene();
+                        break;
+                }
+            }
+
+            // Initial draw
+            drawScene();
+        };
+    </script>
+</body>
+</html> -->
+

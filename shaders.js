@@ -5,7 +5,7 @@ const createShaderProgram = (gl) => {
        uniform mat4 uModelViewMatrix;
        uniform mat4 uProjectionMatrix;
        void main() {
-           gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+            gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
        }
    `;
 

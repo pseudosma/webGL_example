@@ -7,7 +7,7 @@ const render = () => {
         return;
     }
 
-    //create a sphere and return the verticies, normals, and indicies
+    // Create a sphere and return the verticies, normals, and indicies
     const [vertices, normals, indices] = createSphere();
 
     // Create buffers for vertices, normals, and indices
@@ -33,52 +33,47 @@ const render = () => {
     gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionAttributeLocation);
 
-    // Set up matricies
+    // Set up matricies...
 
+    // Projection
     const projectionMatrix = mat4.create();
     mat4.perspective(projectionMatrix, Math.PI / 4, canvas.width / canvas.height, 0.1, 100.0);
-
-    const modelViewMatrix = mat4.create();
-    mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -5.0]);
 
     const projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
     gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
+    // Model View
+    const modelViewMatrix = mat4.create();
+    mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -5.0]);
+
     const modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
     gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
 
-    // const projectionMatrix = mat4.create();
-    // mat4.perspective(projectionMatrix, Math.PI / 4, canvas.width / canvas.height, 0.1, 100.0);
-    // mat4.translate(projectionMatrix, projectionMatrix, [0.0, 0.0, -10.0]);
-
-    // const projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-    // gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+    // View
+    let viewMatrix = mat4.create(); // this one is used for camera control
 
     // Set the background color
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.1, 0.1, 0.1, 1.0);
 
-    // Set up our render loop.
+    // Set up our render loop
     const render_internal = () => {
+        // Clear canvas
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-        const modelViewMatrix = mat4.create();
-        mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -5.0]);
-        mat4.rotateX(modelViewMatrix, modelViewMatrix, angle);
-        mat4.rotateY(modelViewMatrix, modelViewMatrix, angle);
+        // Update view matrix
+        mat4.lookAt(
+            viewMatrix, 
+            cameraPosition, 
+            vec3.add(vec3.create(), 
+            cameraPosition, //cameraPosition, cameraFront, and cameraUp are global vars declared in control.js
+            cameraFront
+            ), 
+            cameraUp);
 
-        const modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
-        gl.uniformMatrix4fv(modelViewMatrixLocation, false, modelViewMatrix);
+        // Set model-view matrix
+        gl.uniformMatrix4fv(modelViewMatrixLocation, false, viewMatrix);
 
-
-        // const projectionMatrix = mat4.create();
-        // mat4.perspective(projectionMatrix, Math.PI / 4, canvas.width / canvas.height, 0.1, 100.0);
-        // mat4.translate(projectionMatrix, projectionMatrix, [0, -2.0, position]);
-        // mat4.rotateY(projectionMatrix, projectionMatrix, angle);
-    
-        // const projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-        // gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-
-        // Clear canvas and draw
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        // Draw cube
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
         requestAnimationFrame(render_internal);

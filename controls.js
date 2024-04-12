@@ -1,7 +1,8 @@
-let angle = 0;
-let position = 0;
+let cameraPosition = vec3.fromValues(0.0, 0.0, -10.0);
+let cameraFront = vec3.fromValues(0, 0, 1.0);
+const cameraUp = vec3.fromValues(0.0, 1.0, 0.0);
 
-const speed = 0.05;
+const speed = 0.1;
 
 const handleKeyPress = (event) => {
     switch (event.keyCode) {
@@ -12,10 +13,10 @@ const handleKeyPress = (event) => {
             angle += speed;
             break;
         case 38: // Up arrow
-            position += speed;
+            vec3.add(cameraPosition, cameraPosition, vec3.scale(vec3.create(), cameraFront, speed));
             break;
         case 40: // Down arrow
-            position -= speed;
+            vec3.subtract(cameraPosition, cameraPosition, vec3.scale(vec3.create(), cameraFront, speed));
             break;
     }
 }
