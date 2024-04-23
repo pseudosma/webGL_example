@@ -64,8 +64,6 @@ const render = () => {
     const uNormalMatrixLocation = gl.getUniformLocation(shaderProgram, 'uNormalMatrix');
     gl.uniformMatrix4fv(uNormalMatrixLocation, false, normalMatrix);
 
-    console.log()
-
     // View
     let viewMatrix = mat4.create(); // this one is used for camera control
 
