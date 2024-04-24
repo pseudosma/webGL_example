@@ -6,4 +6,4 @@ Open web_gl_example.html and use the arrow keys to look left and right, or move 
 
 ## Dependencies
 
-This project leverages gl-matrix.js.
+This project leverages gl-matrix.js. The file is saved locally, rather than relying on a CDN.
